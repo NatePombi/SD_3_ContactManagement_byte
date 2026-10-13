@@ -1,6 +1,6 @@
 
 # Environment variables and secrets
-.env
+backend/.env
 .env.*
 !.env.example
 
