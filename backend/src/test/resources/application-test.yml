@@ -1,0 +1,31 @@
+debug: false
+
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/contact_management_db_test
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: Masoko
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        c3p0:
+          timeout: 3
+
+  flyway:
+    community-db-support-enabled: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.autoconfigure: INFO
+    org.springframework.context.annotation: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
