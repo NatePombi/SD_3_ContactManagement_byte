@@ -28,7 +28,7 @@ public class ContactController {
         return ResponseEntity.ok(contactService.getAllContacts());
     }
 
-    @GetMapping("fetch/{id}")
+    @GetMapping("/fetch/{id}")
     public ResponseEntity<ContactResponse> fetchContact(@PathVariable Long id){
         return ResponseEntity.ok(contactService.getContactById(id));
     }
