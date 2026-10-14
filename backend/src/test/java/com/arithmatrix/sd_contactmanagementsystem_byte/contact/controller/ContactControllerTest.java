@@ -2,6 +2,7 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.contact.controller;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.service.ContactService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -85,5 +87,39 @@ public class ContactControllerTest {
 
 
         verify(contactService, never()).createContact(request);
+    }
+
+
+    @Test
+    void shouldGetAllContacts() throws Exception {
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll"))
+                .andExpect(status().isOk());
+
+        verify(contactService).getAllContacts();
+    }
+
+
+    @Test
+    void shouldGetContactById() throws Exception {
+
+        ContactResponse contactResponse = new ContactResponse(12L,"Tester One", "test@gmail.com", "0874561235");
+
+
+        when(contactService.getContactById(12L)).thenReturn(contactResponse);
+
+        mockMvc.perform(get("/api/v1/contacts/fetch/{id}", 12L))
+                .andExpect(status().isOk());
+
+        verify(contactService).getContactById(12L);
+    }
+
+    @Test
+    void shouldFailGetContactById_NotFound() throws Exception {
+
+        when(contactService.getContactById(12L)).thenThrow(ContactNotFoundException.class);
+
+        mockMvc.perform(get("/api/v1/contacts/fetch/{id}", 12L))
+                .andExpect(status().isNotFound());
     }
 }

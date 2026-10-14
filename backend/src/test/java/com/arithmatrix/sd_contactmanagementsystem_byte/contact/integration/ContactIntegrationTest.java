@@ -15,7 +15,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,8 +42,8 @@ public class ContactIntegrationTest {
     @BeforeEach
     void setup(){
         contactRepository.deleteAll();
-        contact = Contact.create("Tester One", "test@gmail.com","0843215547");
-        contactRepository.save(contact);
+        Contact con = Contact.create("Tester One", "test@gmail.com","0843215547");
+        contact = contactRepository.save(con);
     }
 
 
@@ -91,6 +94,60 @@ public class ContactIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldGetAllContacts() throws Exception {
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll"))
+                .andExpect(status().isOk());
+
+
+        List<Contact> list = contactRepository.findAll();
+
+        assertNotNull(list);
+
+        assertEquals(1, list.size());
+
+        Contact contact = list.get(0);
+
+        assertEquals("Tester One", contact.getFullName());
+        assertEquals("test@gmail.com", contact.getEmail());
+        assertEquals("0843215547", contact.getPhoneNumber());
+    }
+
+    @Test
+    void shouldGetAllContacts_SucceedWithEmptyList() throws Exception {
+        contactRepository.deleteAll();
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll"))
+                .andExpect(status().isOk());
+
+
+        List<Contact> list = contactRepository.findAll();
+
+        assertTrue(list.isEmpty());
+    }
+
+
+    @Test
+    void shouldGetContactById() throws Exception {
+        mockMvc.perform(get("/api/v1/contacts/fetch/{id}",contact.getId()))
+                .andExpect(status().isOk());
+
+        Contact contact1 = contactRepository.findById(contact.getId()).get();
+
+        assertNotNull(contact1);
+
+        assertEquals("Tester One", contact1.getFullName());
+        assertEquals("test@gmail.com", contact1.getEmail());
+        assertEquals("0843215547", contact1.getPhoneNumber());
+    }
+
+    @Test
+    void shouldFailGetContactById_NotFound() throws Exception {
+        mockMvc.perform(get("/api/v1/contacts/fetch/112"))
+                .andExpect(status().isNotFound());
     }
 
 }

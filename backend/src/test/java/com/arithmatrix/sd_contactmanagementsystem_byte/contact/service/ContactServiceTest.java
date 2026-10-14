@@ -4,6 +4,7 @@ import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactRespon
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.TestContact;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.DuplicateContactException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.repository.ContactRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -95,4 +100,55 @@ public class ContactServiceTest {
 
 
     }
+
+
+    @Test
+    void shouldGetContactById(){
+        Contact contact1 = new TestContact(11L,"Tester One","test1@gmail.com","4845121155");
+
+        when(contactRepository.findById(11L)).thenReturn(Optional.of(contact1));
+
+        ContactResponse contact = contactService.getContactById(11L);
+
+        assertNotNull(contact);
+
+        assertEquals(11L,contact.id());
+        assertEquals("Tester One",contact.fullName());
+        assertEquals("test1@gmail.com",contact.email());
+        assertEquals("4845121155",contact.phoneNumber());
+
+        verify(contactRepository).findById(11L);
+    }
+
+    @Test
+    void shouldFailGetContactById_NotFound(){
+        when(contactRepository.findById(11L)).thenThrow(ContactNotFoundException.class);
+
+        assertThrows(ContactNotFoundException.class,()->contactService.getContactById(11L));
+    }
+
+
+
+    @Test
+    void shouldGetAllContacts(){
+        Contact contact1 = new TestContact(11L,"Tester One","test1@gmail.com","4845121155");
+        Contact contact2 = new TestContact(13L,"Tester Two","test2@gmail.com","051541215");
+        Contact contact3 = new TestContact(14L,"Tester Three","test3@gmail.com","24818450554");
+
+        when(contactRepository.findAll(Sort.by(Sort.Direction.ASC,"fullName"))).thenReturn(List.of(contact1,contact2,contact3));
+
+
+        List<ContactResponse> contacts = contactService.getAllContacts();
+
+        assertNotNull(contacts);
+
+        assertEquals(3, contacts.size());
+        assertEquals("Tester One",contacts.get(0).fullName());
+        assertEquals("Tester Two",contacts.get(1).fullName());
+        assertEquals("Tester Three",contacts.get(2).fullName());
+
+    }
+
+
+
 }
