@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/contacts")
@@ -22,5 +21,15 @@ public class ContactController {
     @PostMapping
     public ResponseEntity<ContactResponse> createContact(@Valid @RequestBody CreateContactRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(contactService.createContact(request));
+    }
+
+    @GetMapping("/fetchAll")
+    public ResponseEntity<List<ContactResponse>> fetchAllContacts(){
+        return ResponseEntity.ok(contactService.getAllContacts());
+    }
+
+    @GetMapping("fetch/{id}")
+    public ResponseEntity<ContactResponse> fetchContact(@PathVariable Long id){
+        return ResponseEntity.ok(contactService.getContactById(id));
     }
 }
