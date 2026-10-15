@@ -207,4 +207,21 @@ public class ContactIntegrationTest {
     }
 
 
+    @Test
+    void shouldDeleteContact_AndTryToRetrieve() throws Exception {
+        mockMvc.perform(delete("/api/v1/contacts/delete/{id}",contact.getId()))
+                .andExpect(status().isNoContent());
+
+        List<Contact> list = contactRepository.findAll();
+
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    void shouldFailDelete_NotFound() throws Exception {
+        mockMvc.perform(delete("/api/v1/contacts/delete/1233"))
+                .andExpect(status().isNotFound());
+    }
+
+
 }
