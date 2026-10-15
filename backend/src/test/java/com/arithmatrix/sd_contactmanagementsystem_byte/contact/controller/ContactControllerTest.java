@@ -20,8 +20,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ContactController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -187,6 +186,35 @@ public class ContactControllerTest {
                 .andExpect(status().isBadRequest());
 
     }
+
+
+    @Test
+    void shouldDeleteContact() throws Exception {
+
+        doNothing().when(contactService).deleteContact(12L);
+
+        mockMvc.perform(delete("/api/v1/contacts/delete/{id}",12L))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+
+        verify(contactService).deleteContact(12L);
+    }
+
+    @Test
+    void shouldFailDeleteContact_NotFound() throws Exception {
+
+        doThrow(new ContactNotFoundException("Contact not found with ID: 9999")).when(contactService).deleteContact(9999L);
+
+        mockMvc.perform(delete("/api/v1/contacts/delete/{id}",9999L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Contact not found with ID: 9999"));
+
+        verify(contactService).deleteContact(9999L);
+
+    }
+
+
 
 
 }

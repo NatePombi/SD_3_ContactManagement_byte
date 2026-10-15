@@ -235,4 +235,29 @@ public class ContactServiceTest {
         });
     }
 
+    @Test
+    void shouldDeleteContact(){
+        Contact contact = new TestContact(12L,"Tester One","test@gmail.com","0745651236");
+
+        when(contactRepository.findById(12L)).thenReturn(Optional.of(contact));
+
+        contactService.deleteContact(12L);
+
+        verify(contactRepository).findById(12L);
+        verify(contactRepository).delete(contact);
+
+    }
+
+
+    @Test
+    void shouldFailDeleteContact_ContactNotFound(){
+        when(contactRepository.findById(12L)).thenThrow(ContactNotFoundException.class);
+
+        assertThrows(ContactNotFoundException.class,()->{
+            contactService.deleteContact(12L);
+        });
+
+        verify(contactRepository,never()).delete(any(Contact.class));
+    }
+
 }

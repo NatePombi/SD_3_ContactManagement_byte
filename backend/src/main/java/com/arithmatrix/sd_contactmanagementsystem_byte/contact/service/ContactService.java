@@ -85,4 +85,11 @@ public class ContactService {
 
         return new ContactResponse(contact.getId(), contact.getFullName(), contact.getEmail(), contact.getPhoneNumber());
     }
+
+    @Transactional
+    public void deleteContact(Long id) {
+        Contact contact = contactRepository.findById(id).orElseThrow(()-> new ContactNotFoundException("Contact with id " + id + " not found"));
+
+        contactRepository.delete(contact);
+    }
 }
