@@ -2,6 +2,7 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.contact.controller;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.service.ContactService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,10 @@ public class ContactController {
     @GetMapping("/fetch/{id}")
     public ResponseEntity<ContactResponse> fetchContact(@PathVariable Long id){
         return ResponseEntity.ok(contactService.getContactById(id));
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ContactResponse> updateContact(@PathVariable Long id, @Valid @RequestBody UpdateContactRequest request){
+        return ResponseEntity.ok(contactService.updateContact(request,id));
     }
 }

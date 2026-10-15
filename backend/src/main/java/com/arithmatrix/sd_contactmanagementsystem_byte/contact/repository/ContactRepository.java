@@ -8,4 +8,8 @@ public interface ContactRepository extends JpaRepository<Contact,Long> {
     boolean existsByEmailIgnoreCase(String email);
 
     Contact findByFullName(String testerTwo);
+
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+    boolean existsByPhoneNumberIgnoreCaseAndIdNot(String phoneNumber, Long id);
+
 }
