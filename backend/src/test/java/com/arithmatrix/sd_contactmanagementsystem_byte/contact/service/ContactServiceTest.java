@@ -2,6 +2,7 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.contact.service;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.TestContact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
@@ -150,5 +151,88 @@ public class ContactServiceTest {
     }
 
 
+    @Test
+    void shouldUpdateContact(){
+        Contact saved = new TestContact(12L,"Test One","test@gmail.com","0874561235");
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","tester@gmail.com","0763314526");
+        when(contactRepository.findById(12L)).thenReturn(Optional.of(saved));
+        when(contactRepository.existsByEmailIgnoreCaseAndIdNot("tester@gmail.com",12L)).thenReturn(false);
+        when(contactRepository.existsByPhoneNumberIgnoreCaseAndIdNot("0763314526",12L)).thenReturn(false);
+
+
+        ContactResponse response = contactService.updateContact(request,12L);
+
+        assertNotNull(response);
+
+        assertEquals(12L,response.id());
+        assertEquals("Tester One",response.fullName());
+        assertEquals("tester@gmail.com",response.email());
+        assertEquals("0763314526",response.phoneNumber());
+    }
+
+
+    @Test
+    void shouldUpdateContact_WithSameEmailAndPhoneNumber(){
+        Contact saved = new TestContact(12L,"Test One","test@gmail.com","0874561235");
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","test@gmail.com","0874561235");
+        when(contactRepository.findById(12L)).thenReturn(Optional.of(saved));
+        when(contactRepository.existsByEmailIgnoreCaseAndIdNot("test@gmail.com",12L)).thenReturn(false);
+        when(contactRepository.existsByPhoneNumberIgnoreCaseAndIdNot("0874561235",12L)).thenReturn(false);
+
+
+        ContactResponse response = contactService.updateContact(request,12L);
+
+        assertNotNull(response);
+
+        assertEquals(12L,response.id());
+        assertEquals("Tester One",response.fullName());
+        assertEquals("test@gmail.com",response.email());
+        assertEquals("0874561235",response.phoneNumber());
+
+        verify(contactRepository).findById(12L);
+        verify(contactRepository).existsByEmailIgnoreCaseAndIdNot("test@gmail.com",12L);
+        verify(contactRepository).existsByPhoneNumberIgnoreCaseAndIdNot("0874561235",12L);
+    }
+
+
+
+    @Test
+    void shouldFailUpdateContact_ContactNotFound(){
+        when(contactRepository.findById(12L)).thenThrow(ContactNotFoundException.class);
+
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","test@gmail.com","0874561235");
+
+        assertThrows(ContactNotFoundException.class,()->contactService.updateContact(request,12L));
+    }
+
+
+    @Test
+    void shouldFailUpdateContact_DuplicateEmail(){
+        Contact saved = new TestContact(12L,"Test One","test@gmail.com","0874561235");
+
+        when(contactRepository.findById(12L)).thenReturn(Optional.of(saved));
+        when(contactRepository.existsByEmailIgnoreCaseAndIdNot("test@gmail.com",12L)).thenReturn(true);
+
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","test@gmail.com","0874561235");
+
+        assertThrows(DuplicateContactException.class,()->{
+            contactService.updateContact(request,12L);
+        });
+    }
+
+    @Test
+    void shouldFailUpdateContact_DuplicatePhoneNumber(){
+        Contact saved = new TestContact(12L,"Test One","test@gmail.com","0874561235");
+
+        when(contactRepository.findById(12L)).thenReturn(Optional.of(saved));
+        when(contactRepository.existsByEmailIgnoreCaseAndIdNot("test@gmail.com",12L)).thenReturn(false);
+        when(contactRepository.existsByPhoneNumberIgnoreCaseAndIdNot("0874561235",12L)).thenReturn(true);
+
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","test@gmail.com","0874561235");
+
+        assertThrows(DuplicateContactException.class,()->{
+            contactService.updateContact(request,12L);
+        });
+    }
 
 }

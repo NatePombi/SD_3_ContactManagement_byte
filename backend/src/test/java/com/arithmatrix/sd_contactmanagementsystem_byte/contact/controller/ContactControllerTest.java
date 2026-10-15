@@ -2,6 +2,9 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.contact.controller;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.TestContact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.service.ContactService;
 import org.junit.jupiter.api.Test;
@@ -13,9 +16,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Optional;
+
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -122,4 +126,67 @@ public class ContactControllerTest {
         mockMvc.perform(get("/api/v1/contacts/fetch/{id}", 12L))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void shouldUpdateContact() throws Exception {
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","tester@gmail.com","0874561235");
+        ContactResponse response = new ContactResponse(12L,"Tester One","tester@gmail.com", "0874561235");
+
+        when(contactService.updateContact(request,12L)).thenReturn(response);
+        mockMvc.perform(put("/api/v1/contacts/update/{id}", 12L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(12L))
+                .andExpect(jsonPath("$.fullName").value("Tester One"))
+                .andExpect(jsonPath("$.email").value("tester@gmail.com"))
+                .andExpect(jsonPath("phoneNumber").value("0874561235"));
+
+    }
+
+    @Test
+    void shouldFailUpdateContact_InvalidId() throws Exception {
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}", "Invalid"))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    void shouldFailUpdateContact_FullNameEmpty() throws Exception {
+        UpdateContactRequest request = new UpdateContactRequest("  ","tester@gmail.com","0874561235");
+
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}", 12L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    void shouldFailUpdateContact_EmailEmpty() throws Exception {
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","    ","0874561235");
+
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}", 12L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    void shouldFailUpdateContact_PhoneNumberEmpty() throws Exception {
+        UpdateContactRequest request = new UpdateContactRequest("Tester One","tester@gmail.com","   ");
+
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}", 12L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+    }
+
+
 }

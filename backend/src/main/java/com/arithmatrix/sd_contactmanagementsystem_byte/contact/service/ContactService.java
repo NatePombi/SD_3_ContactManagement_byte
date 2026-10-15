@@ -2,6 +2,7 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.contact.service;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.DuplicateContactException;
@@ -59,6 +60,28 @@ public class ContactService {
     public ContactResponse getContactById(Long id) {
 
         Contact contact = contactRepository.findById(id).orElseThrow(()-> new ContactNotFoundException("Contact with id " + id + " not found"));
+
+        return new ContactResponse(contact.getId(), contact.getFullName(), contact.getEmail(), contact.getPhoneNumber());
+    }
+
+
+    @Transactional
+    public ContactResponse updateContact(UpdateContactRequest request, Long id) {
+        String fullName = request.fullName().trim();
+        String email = request.email().trim();
+        String phoneNumber = request.phoneNumber().trim().toLowerCase(Locale.ROOT);
+
+        Contact contact = contactRepository.findById(id).orElseThrow(()-> new ContactNotFoundException("Contact with id " + id + " not found"));
+
+        if(contactRepository.existsByEmailIgnoreCaseAndIdNot(email,id)) {
+            throw new DuplicateContactException("A contact with this email address already exists");
+        }
+
+        if (contactRepository.existsByPhoneNumberIgnoreCaseAndIdNot(phoneNumber,id)) {
+            throw new DuplicateContactException("A contact with phone number already exists");
+        }
+
+        contact.updateDetails(fullName, email, phoneNumber);
 
         return new ContactResponse(contact.getId(), contact.getFullName(), contact.getEmail(), contact.getPhoneNumber());
     }

@@ -1,7 +1,9 @@
 package com.arithmatrix.sd_contactmanagementsystem_byte.contact.integration;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.TestContact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.repository.ContactRepository;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.service.ContactService;
 import jakarta.transaction.Transactional;
@@ -18,8 +20,8 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -149,5 +151,60 @@ public class ContactIntegrationTest {
         mockMvc.perform(get("/api/v1/contacts/fetch/112"))
                 .andExpect(status().isNotFound());
     }
+
+
+    @Test
+    void shouldUpdateContact() throws Exception {
+        UpdateContactRequest request = new UpdateContactRequest("Tester Two","tester@gmail.com","0874561235");
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}",contact.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+
+        Contact contact1 = contactRepository.findById(contact.getId()).get();
+
+        assertNotNull(contact1);
+
+        assertEquals("Tester Two", contact1.getFullName());
+        assertEquals("tester@gmail.com", contact1.getEmail());
+        assertEquals("0874561235", contact1.getPhoneNumber());
+    }
+
+    @Test
+    void shouldFailUpdateContact_DuplicateEmail() throws Exception {
+        Contact contact1 = Contact.create("Tester One","tester@gmail.com","01548511555");
+        contactRepository.save(contact1);
+        UpdateContactRequest request = new UpdateContactRequest("Tester Two","tester@gmail.com","0874561235");
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}",contact.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldFailUpdateContact_DuplicatePhoneNumber() throws Exception {
+        Contact contact1 = Contact.create("Tester One","tester@gmail.com","01548511555");
+        contactRepository.save(contact1);
+        UpdateContactRequest request = new UpdateContactRequest("Tester Two","tester@gmail.com","01548511555");
+
+        mockMvc.perform(put("/api/v1/contacts/update/{id}",contact.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldFailUpdateContact_NotFound() throws Exception {
+        UpdateContactRequest request = new UpdateContactRequest("Tester Two","tester@gmail.com","0874561235");
+
+        mockMvc.perform(put("/api/v1/contacts/update/666")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
 
 }
