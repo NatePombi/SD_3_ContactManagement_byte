@@ -16,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -102,6 +103,43 @@ public class ContactControllerTest {
         verify(contactService).getAllContacts();
     }
 
+    @Test
+    void shouldSearchContact() throws Exception {
+
+      String keyword = "Test";
+
+      ContactResponse response = new ContactResponse(1L,"Tester One","test@gmail.com","0545125");
+
+      when(contactService.searchContacts(keyword)).thenReturn(List.of(response));
+
+
+      mockMvc.perform(get("/api/v1/contacts/fetchAll")
+              .param("search",keyword))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.length()").value(1))
+              .andExpect(jsonPath("$[0].id").value(1L))
+              .andExpect(jsonPath("$[0].fullName").value("Tester One"))
+              .andExpect(jsonPath("$[0].email").value("test@gmail.com"))
+              .andExpect(jsonPath("$[0].phoneNumber").value("0545125"));
+    }
+
+
+    @Test
+    void shouldSearchContact_whenNoMatchesExist() throws Exception {
+
+        String keyword = "unknownperson";
+
+
+        when(contactService.searchContacts(keyword)).thenReturn(List.of());
+
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll")
+                        .param("search",keyword))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(contactService).searchContacts(keyword);
+    }
 
     @Test
     void shouldGetContactById() throws Exception {
@@ -213,6 +251,8 @@ public class ContactControllerTest {
         verify(contactService).deleteContact(9999L);
 
     }
+
+
 
 
 

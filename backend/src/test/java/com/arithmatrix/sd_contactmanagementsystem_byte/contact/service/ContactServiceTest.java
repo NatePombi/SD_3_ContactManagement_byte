@@ -11,6 +11,8 @@ import com.arithmatrix.sd_contactmanagementsystem_byte.contact.repository.Contac
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -258,6 +260,129 @@ public class ContactServiceTest {
         });
 
         verify(contactRepository,never()).delete(any(Contact.class));
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {"john","gmail","082"})
+    void searchContacts_shouldReturnMatchingContacts(String keyword) throws Exception {
+
+        Contact contact1 = mock(Contact.class);
+
+        when(contact1.getId()).thenReturn(1L);
+        when(contact1.getFullName()).thenReturn("John Smith");
+        when(contact1.getEmail()).thenReturn("john@gmail.com");
+        when(contact1.getPhoneNumber()).thenReturn("0823215547");
+
+        Sort sort = Sort.by(Sort.Direction.ASC,"fullName");
+
+        when(contactRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(
+                keyword,
+                keyword,
+                keyword,
+                sort
+        )).thenReturn(List.of(contact1));
+
+        List<ContactResponse> responses = contactService.searchContacts(keyword);
+
+        assertEquals(1,responses.size());
+
+        ContactResponse response = responses.get(0);
+
+        assertEquals(1L,response.id());
+        assertEquals("John Smith",response.fullName());
+        assertEquals("john@gmail.com",response.email());
+        assertEquals("0823215547",response.phoneNumber());
+
+
+        verify(contactRepository).findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(
+                keyword,
+                keyword,
+                keyword,
+                sort
+        );
+    }
+
+    @Test
+    void searchContacts_shouldReturnEmptyList_whenNoMatchesExist(){
+        String keyword = "unknownperson";
+
+        Sort sort = Sort.by(Sort.Direction.ASC,"fullName");
+
+        when(contactRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(keyword,keyword,keyword,sort)).thenReturn(List.of());
+
+
+        List<ContactResponse> responses = contactService.searchContacts(keyword);
+
+        assertNotNull(responses);
+        assertTrue(responses.isEmpty());
+
+        verify(contactRepository).findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(keyword,keyword,keyword,sort);
+    }
+
+    @Test
+    void searchContacts_shouldReturnAllContacts_WhenSearchIsBlank(){
+        Contact contact = new TestContact(12L,"Tester One","test@gmail.com","074565145744");
+        Contact contact1 = new TestContact(13L,"Tester Two","test2@gmail.com","0745655468");
+        Contact contact2 = new TestContact(14L,"Tester Three","test3@gmail.com","074565128745");
+
+        String keyword = "     ";
+
+
+        when(contactRepository.findAll(Sort.by(Sort.Direction.ASC,"fullName"))).thenReturn(List.of(contact,contact1,contact2));
+
+
+        List<ContactResponse> responses = contactService.searchContacts(keyword);
+
+        assertNotNull(responses);
+
+        assertEquals(3,responses.size());
+
+        assertEquals("Tester One",responses.get(0).fullName());
+        assertEquals("test@gmail.com",responses.get(0).email());
+        assertEquals("074565145744",responses.get(0).phoneNumber());
+
+        assertEquals("Tester Two",responses.get(1).fullName());
+        assertEquals("test2@gmail.com",responses.get(1).email());
+        assertEquals("0745655468",responses.get(1).phoneNumber());
+
+        assertEquals("Tester Three",responses.get(2).fullName());
+        assertEquals("test3@gmail.com",responses.get(2).email());
+        assertEquals("074565128745",responses.get(2).phoneNumber());
+
+    }
+
+    @Test
+    void searchContacts_ShouldReturnAllContact_WhenSearchIsNull(){
+        Contact contact = new TestContact(12L,"Tester One","test@gmail.com","074565145744");
+        Contact contact1 = new TestContact(13L,"Tester Two","test2@gmail.com","0745655468");
+        Contact contact2 = new TestContact(14L,"Tester Three","test3@gmail.com","074565128745");
+
+        String keyword = null;
+
+
+        when(contactRepository.findAll(Sort.by(Sort.Direction.ASC,"fullName"))).thenReturn(List.of(contact,contact1,contact2));
+
+
+        List<ContactResponse> responses = contactService.searchContacts(keyword);
+
+        assertNotNull(responses);
+
+        assertEquals(3,responses.size());
+
+        assertEquals("Tester One",responses.get(0).fullName());
+        assertEquals("test@gmail.com",responses.get(0).email());
+        assertEquals("074565145744",responses.get(0).phoneNumber());
+
+        assertEquals("Tester Two",responses.get(1).fullName());
+        assertEquals("test2@gmail.com",responses.get(1).email());
+        assertEquals("0745655468",responses.get(1).phoneNumber());
+
+        assertEquals("Tester Three",responses.get(2).fullName());
+        assertEquals("test3@gmail.com",responses.get(2).email());
+        assertEquals("074565128745",responses.get(2).phoneNumber());
+
+        verify(contactRepository).findAll(Sort.by(Sort.Direction.ASC,"fullName"));
     }
 
 }

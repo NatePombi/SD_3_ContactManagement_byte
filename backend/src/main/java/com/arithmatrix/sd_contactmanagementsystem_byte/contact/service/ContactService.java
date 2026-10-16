@@ -92,4 +92,20 @@ public class ContactService {
 
         contactRepository.delete(contact);
     }
+
+    @Transactional
+    public List<ContactResponse> searchContacts(String search) {
+
+        if(search == null || search.isBlank()) {
+            return getAllContacts();
+        }
+
+        String searchReq = search.trim();
+
+        List<Contact> contacts = contactRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(searchReq,searchReq,searchReq,Sort.by(Sort.Direction.ASC,"fullName"));
+
+        return contacts.stream()
+                .map(contact-> new ContactResponse(contact.getId(), contact.getFullName(),contact.getEmail(),contact.getPhoneNumber()))
+                .toList();
+    }
 }
