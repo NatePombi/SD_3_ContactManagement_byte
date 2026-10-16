@@ -3,6 +3,7 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.contact.controller;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.service.ContactService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,18 @@ public class ContactController {
     }
 
     @GetMapping("/fetchAll")
-    public ResponseEntity<List<ContactResponse>> fetchAllContacts(){
-        return ResponseEntity.ok(contactService.getAllContacts());
+    public ResponseEntity<List<ContactResponse>> fetchAllContacts(@RequestParam(required = false) String search){
+
+        List<ContactResponse> contacts;
+
+        if(search == null || search.isBlank()){
+            contacts = contactService.getAllContacts();
+        }
+        else{
+            contacts = contactService.searchContacts(search);
+        }
+
+        return ResponseEntity.ok(contacts);
     }
 
     @GetMapping("/fetch/{id}")

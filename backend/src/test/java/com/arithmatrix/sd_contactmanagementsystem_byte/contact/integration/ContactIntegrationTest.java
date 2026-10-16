@@ -1,5 +1,6 @@
 package com.arithmatrix.sd_contactmanagementsystem_byte.contact.integration;
 
+import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.ContactResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.CreateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.dto.UpdateContactRequest;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
@@ -9,9 +10,12 @@ import com.arithmatrix.sd_contactmanagementsystem_byte.contact.service.ContactSe
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,8 +24,9 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -102,20 +107,11 @@ public class ContactIntegrationTest {
     void shouldGetAllContacts() throws Exception {
 
         mockMvc.perform(get("/api/v1/contacts/fetchAll"))
-                .andExpect(status().isOk());
-
-
-        List<Contact> list = contactRepository.findAll();
-
-        assertNotNull(list);
-
-        assertEquals(1, list.size());
-
-        Contact contact = list.get(0);
-
-        assertEquals("Tester One", contact.getFullName());
-        assertEquals("test@gmail.com", contact.getEmail());
-        assertEquals("0843215547", contact.getPhoneNumber());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(contact.getId()))
+                .andExpect(jsonPath("$[0].fullName").value(contact.getFullName()))
+                .andExpect(jsonPath("$[0].email").value(contact.getEmail()))
+                .andExpect(jsonPath("$[0].phoneNumber").value(contact.getPhoneNumber()));
     }
 
     @Test
@@ -131,19 +127,90 @@ public class ContactIntegrationTest {
         assertTrue(list.isEmpty());
     }
 
+    @Test
+    void shouldSearchContactFullName() throws Exception {
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll")
+                .param("search","Test"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(contact.getId()))
+                .andExpect(jsonPath("$[0].fullName").value(contact.getFullName()))
+                .andExpect(jsonPath("$[0].email").value(contact.getEmail()))
+                .andExpect(jsonPath("$[0].phoneNumber").value(contact.getPhoneNumber()));
+
+    }
+
+    @Test
+    void shouldSearchContactFullName_IgnoreCase() throws Exception {
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll")
+                        .param("search","TEST"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(contact.getId()))
+                .andExpect(jsonPath("$[0].fullName").value(contact.getFullName()))
+                .andExpect(jsonPath("$[0].email").value(contact.getEmail()))
+                .andExpect(jsonPath("$[0].phoneNumber").value(contact.getPhoneNumber()));
+
+    }
+
+    @Test
+    void shouldSearchContactEmail() throws Exception {
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll")
+                        .param("search","test@gmail.com"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(contact.getId()))
+                .andExpect(jsonPath("$[0].fullName").value(contact.getFullName()))
+                .andExpect(jsonPath("$[0].email").value(contact.getEmail()))
+                .andExpect(jsonPath("$[0].phoneNumber").value(contact.getPhoneNumber()));
+
+    }
+
+    @Test
+    void shouldSearchContactEmail_NoSearch() throws Exception {
+
+        Contact contact1 = Contact.create("Nate","nate@gmail.com","0248521515");
+        contactRepository.save(contact1);
+
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll")
+                        .param("search","   "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+
+    }
+
+
+    @Test
+    void shouldSearchContact_PhoneNumber() throws Exception {
+
+        mockMvc.perform(get("/api/v1/contacts/fetchAll")
+                        .param("search","0843215547"))
+                .andExpect(status().isOk());
+
+        List<Contact> list = contactRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase("0843215547","0843215547","0843215547", Sort.by(Sort.Direction.ASC,"fullName"));
+
+        assertNotNull(list);
+
+        assertEquals(1, list.size());
+
+        assertEquals("Tester One", list.get(0).getFullName());
+        assertEquals("test@gmail.com", list.get(0).getEmail());
+        assertEquals("0843215547", list.get(0).getPhoneNumber());
+    }
+
+
+
 
     @Test
     void shouldGetContactById() throws Exception {
         mockMvc.perform(get("/api/v1/contacts/fetch/{id}",contact.getId()))
-                .andExpect(status().isOk());
-
-        Contact contact1 = contactRepository.findById(contact.getId()).get();
-
-        assertNotNull(contact1);
-
-        assertEquals("Tester One", contact1.getFullName());
-        assertEquals("test@gmail.com", contact1.getEmail());
-        assertEquals("0843215547", contact1.getPhoneNumber());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(contact.getId()))
+                .andExpect(jsonPath("$.fullName").value(contact.getFullName()))
+                .andExpect(jsonPath("$.email").value(contact.getEmail()))
+                .andExpect(jsonPath("$.phoneNumber").value(contact.getPhoneNumber()));
     }
 
     @Test
