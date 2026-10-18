@@ -1,8 +1,7 @@
 package com.arithmatrix.sd_contactmanagementsystem_byte.relationship.controller;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
-import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.CreateRelationshipRequest;
-import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.RelationshipResponse;
+import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.*;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.enums.RelationshipType;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.exception.DuplicateRelationshipException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.exception.InvalidRelationshipException;
@@ -201,5 +200,72 @@ public class ContactRelationshipControllerTest {
 
     }
 
+
+    @Test
+    void getRelationShipGraph_shouldReturn200_withNodesAndEdges() throws Exception {
+
+        RelationshipGraphResponse graphResponse = new RelationshipGraphResponse(
+                List.of(
+                        new GraphNodeResponse(1L,"John Smith"),
+                        new GraphNodeResponse(2L,"Sarah Morgan")),
+                List.of(
+                        new GraphEdgeResponse(12L,1L,2L,RelationshipType.MANAGES)
+                )
+        );
+
+        when(relationshipService.getRelationshipGraph()).thenReturn(graphResponse);
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes.length()").value(2))
+                .andExpect(jsonPath("$.edges.length()").value(1))
+
+                .andExpect(jsonPath("$.nodes[0].id").value(1L))
+                .andExpect(jsonPath("$.nodes[0].fullName").value("John Smith"))
+                .andExpect(jsonPath("$.nodes[1].id").value(2L))
+                .andExpect(jsonPath("$.nodes[1].fullName").value("Sarah Morgan"))
+
+                .andExpect(jsonPath("$.edges[0].id").value(12L))
+                .andExpect(jsonPath("$.edges[0].sourceContactId").value(1L))
+                .andExpect(jsonPath("$.edges[0].targetContactId").value(2L))
+                .andExpect(jsonPath("$.edges[0].relationType").value(RelationshipType.MANAGES.name()));
+
+        verify(relationshipService).getRelationshipGraph();
+    }
+
+    @Test
+    void getRelationshipGraph_shouldReturn200_whenGraphIsEmpty() throws Exception {
+        RelationshipGraphResponse response = new RelationshipGraphResponse(List.of(),List.of());
+
+        when(relationshipService.getRelationshipGraph()).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk());
+
+
+        verify(relationshipService).getRelationshipGraph();
+    }
+
+    @Test
+    void getRelationshipGraph_shouldIncludeIsolatedContacts() throws Exception {
+        RelationshipGraphResponse graphResponse = new RelationshipGraphResponse(
+                List.of(
+                        new GraphNodeResponse(1L,"John Smith")),
+                List.of()
+        );
+
+        when(relationshipService.getRelationshipGraph()).thenReturn(graphResponse);
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes.length()").value(1))
+                .andExpect(jsonPath("$.edges.length()").value(0))
+
+                .andExpect(jsonPath("$.nodes[0].id").value(1L))
+                .andExpect(jsonPath("$.nodes[0].fullName").value("John Smith"));
+
+        verify(relationshipService).getRelationshipGraph();
+
+    }
 
 }

@@ -4,8 +4,7 @@ import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.TestContact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.repository.ContactRepository;
-import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.CreateRelationshipRequest;
-import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.RelationshipResponse;
+import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.*;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.entity.ContactRelationship;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.entity.TestContactRelationship;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.enums.RelationshipType;
@@ -19,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -210,6 +210,98 @@ public class ContactRelationshipServiceTest {
 
         verify(contactRepository).existsById(13L);
         verifyNoInteractions(relationshipRepository);
+
+    }
+
+
+    @Test
+    void GetRelationshipGraph_ShouldReturnAllNodesAndEdges(){
+        Contact john = new TestContact(1L ,"John Smith","john@gmail.com","0284521888");
+        Contact sarah = new TestContact(2L ,"Sarah Morgan","sarah@gmail.com","076418018");
+        Contact max = new TestContact(3L ,"Max Payne","max@gmail.com","0698751158");
+        Contact ned = new TestContact(4L ,"Ned Wed","ned@gmail.com","0915188151");
+
+        ContactRelationship manages = ContactRelationship.create(john, max, RelationshipType.MANAGES);
+        ContactRelationship mentors = ContactRelationship.create(max, ned, RelationshipType.MENTORS);
+
+        ReflectionTestUtils.setField(manages,"id",6L);
+        ReflectionTestUtils.setField(mentors,"id",7L);
+
+        Sort contactSort = Sort.by(Sort.Direction.ASC,"fullName").and(Sort.by("id"));
+        Sort relationshipSort = Sort.by(Sort.Direction.ASC,"id");
+
+        when(contactRepository.findAll(contactSort)).thenReturn(List.of(john,sarah,max,ned));
+        when(relationshipRepository.findAll(relationshipSort)).thenReturn(List.of(manages,mentors));
+
+        RelationshipGraphResponse graphResponse = contactRelationshipService.getRelationshipGraph();
+
+        assertNotNull(graphResponse);
+
+        assertEquals(4,graphResponse.nodes().size());
+        assertEquals(2,graphResponse.edges().size());
+
+        assertEquals(
+                List.of(new GraphNodeResponse(1L,"John Smith"),
+                        new GraphNodeResponse(2L,"Sarah Morgan"),
+                        new GraphNodeResponse(3L,"Max Payne"),
+                        new GraphNodeResponse(4L,"Ned Wed")),graphResponse.nodes()
+        );
+
+        assertEquals(
+                List.of(new GraphEdgeResponse(6L,1L,3L,RelationshipType.MANAGES),
+                        new GraphEdgeResponse(7L,3L,4L,RelationshipType.MENTORS)),graphResponse.edges()
+        );
+
+        verify(contactRepository).findAll(contactSort);
+        verify(relationshipRepository).findAll(relationshipSort);
+    }
+
+
+    @Test
+    void getRelationshipGraph_shouldReturnNodes_WhenNoRelationshipsExists(){
+        Contact john = new TestContact(1L ,"John Smith","john@gmail.com","0284521888");
+        Contact sarah = new TestContact(2L ,"Sarah Morgan","sarah@gmail.com","076418018");
+
+        Sort contactSort = Sort.by(Sort.Direction.ASC,"fullName").and(Sort.by("id"));
+        Sort relationshipSort = Sort.by(Sort.Direction.ASC,"id");
+
+        when(contactRepository.findAll(contactSort)).thenReturn(List.of(john,sarah));
+        when(relationshipRepository.findAll(relationshipSort)).thenReturn(List.of());
+
+        RelationshipGraphResponse graphResponse = contactRelationshipService.getRelationshipGraph();
+
+        assertNotNull(graphResponse);
+
+        assertEquals(2,graphResponse.nodes().size());
+        assertTrue(graphResponse.edges().isEmpty());
+        assertEquals(1L,graphResponse.nodes().get(0).id());
+        assertEquals("John Smith",graphResponse.nodes().get(0).fullName());
+        assertEquals(2L,graphResponse.nodes().get(1).id());
+        assertEquals("Sarah Morgan",graphResponse.nodes().get(1).fullName());
+
+        verify(contactRepository).findAll(contactSort);
+        verify(relationshipRepository).findAll(relationshipSort);
+    }
+
+    @Test
+    void getRelationshipGraph_shouldReturnEmptyGraph_whenDatabaseIsEmpty(){
+        Sort contactSort = Sort.by(Sort.Direction.ASC,"fullName").and(Sort.by("id"));
+        Sort relationshipSort = Sort.by(Sort.Direction.ASC,"id");
+
+        when(contactRepository.findAll(contactSort)).thenReturn(List.of());
+        when(relationshipRepository.findAll(relationshipSort)).thenReturn(List.of());
+
+        RelationshipGraphResponse graphResponse = contactRelationshipService.getRelationshipGraph();
+
+        assertNotNull(graphResponse);
+        assertNotNull(graphResponse.nodes());
+        assertNotNull(graphResponse.edges());
+
+        assertTrue(graphResponse.nodes().isEmpty());
+        assertTrue(graphResponse.edges().isEmpty());
+
+        verify(contactRepository).findAll(contactSort);
+        verify(relationshipRepository).findAll(relationshipSort);
 
     }
 }

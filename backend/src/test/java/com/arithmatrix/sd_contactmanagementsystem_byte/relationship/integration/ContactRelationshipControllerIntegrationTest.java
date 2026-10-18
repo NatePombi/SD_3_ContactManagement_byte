@@ -166,11 +166,45 @@ public class ContactRelationshipControllerIntegrationTest {
 
     @Test
     void shouldFailGetRelationshipsForContact_ContactNotFound() throws Exception{
-        Long sourceId = 99L;
+        long sourceId = 99L;
 
 
         mockMvc.perform(get("/api/v1/relationships/contact/" + sourceId))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getRelationshipGraph_shouldReturn200_withNodesAndEdges() throws Exception {
+        Contact john = Contact.create("John Smith","john@gmail.com","0745618986");
+        Contact sarah = Contact.create("Sarah Morgan","sarah@gmail.com","0648545245");
+        contactRepository.save(john);
+        contactRepository.save(sarah);
+
+        ContactRelationship manages = ContactRelationship.create(john,sarah,RelationshipType.MANAGES);
+        relationshipRepository.save(manages);
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes.length()").value(4))
+                .andExpect(jsonPath("$.edges.length()").value(1));
+    }
+
+    @Test
+    void getRelationshipGraph_shouldReturn200_whenGraphIsEmpty() throws Exception {
+        contactRepository.deleteAll();
+        relationshipRepository.deleteAll();
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getRelationshipGraph_shouldIncludeIsolatedContacts() throws Exception {
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes.length()").value(2))
+                .andExpect(jsonPath("$.edges.length()").value(0));
     }
 
 
