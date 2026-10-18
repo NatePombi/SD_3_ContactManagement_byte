@@ -1,6 +1,7 @@
 package com.arithmatrix.sd_contactmanagementsystem_byte.relationship.controller;
 
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.CreateRelationshipRequest;
+import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.RelationshipGraphResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.RelationshipResponse;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.service.ContactRelationshipService;
 import jakarta.validation.Valid;
@@ -26,5 +27,11 @@ public class ContactRelationshipController {
     @GetMapping("/contact/{contactId}")
     public ResponseEntity<List<RelationshipResponse>> getRelationship(@PathVariable Long contactId){
         return ResponseEntity.ok(relationshipService.getRelationshipsForContact(contactId));
+    }
+
+
+    @GetMapping("/graph")
+    public ResponseEntity<RelationshipGraphResponse> getRelationshipGraph(){
+        return ResponseEntity.ok(relationshipService.getRelationshipGraph());
     }
 }

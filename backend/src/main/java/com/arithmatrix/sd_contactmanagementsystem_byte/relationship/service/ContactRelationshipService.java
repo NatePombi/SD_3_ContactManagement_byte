@@ -3,14 +3,14 @@ package com.arithmatrix.sd_contactmanagementsystem_byte.relationship.service;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.entity.Contact;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.ContactNotFoundException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.repository.ContactRepository;
-import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.CreateRelationshipRequest;
-import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.RelationshipResponse;
+import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.*;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.entity.ContactRelationship;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.exception.DuplicateRelationshipException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.exception.InvalidRelationshipException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.repository.RelationshipRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,6 +60,23 @@ public class ContactRelationshipService {
         return contacts.stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    public RelationshipGraphResponse getRelationshipGraph(){
+        List<Contact> contacts = contactRepository.findAll(Sort.by(Sort.Direction.ASC,"fullName").and(Sort.by("id")));
+
+        List<GraphNodeResponse> nodes = contacts.stream()
+                .map(contact -> new GraphNodeResponse(contact.getId(),contact.getFullName()))
+                .toList();
+
+        List<ContactRelationship> relationships = relationshipRepository.findAll(Sort.by(Sort.Direction.ASC,"id"));
+
+        List<GraphEdgeResponse> edges = relationships.stream()
+                .map(relationship -> new GraphEdgeResponse(relationship.getId(),relationship.getSourceContact().getId(),relationship.getTargetContact().getId(),relationship.getRelationshipType()))
+                .toList();
+
+
+        return new RelationshipGraphResponse(nodes,edges);
     }
 
 
