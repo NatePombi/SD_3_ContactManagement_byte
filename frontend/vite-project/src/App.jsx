@@ -1,15 +1,22 @@
+
+import { useState } from "react";
 import Header from "./components/Header";
 import ContactDirectory from "./components/ContactDirectory";
-import "./App.css";
 import RelationshipManager from "./components/RelationshipManager";
-import {useState } from "react";
 import RelationshipGraph from "./components/RelationshipGraph";
+import "./App.css";
+
+const navigation = [
+  { id: "overview", label: "Overview", icon: "◫" },
+  { id: "contacts", label: "Contacts", icon: "♧" },
+  { id: "relationships", label: "Create Relationships", icon: "↗" },
+  { id: "relationship-graph", label: "Relationship Graph", icon: "◎" },
+];
 
 export default function App() {
-
   const appName = "ContactHub";
-
   const [graphVersion, setGraphVersion] = useState(0);
+  const [activeSection, setActiveSection] = useState("overview");
 
   function refreshGraph() {
     setGraphVersion(previous => previous + 1);
@@ -17,117 +24,126 @@ export default function App() {
 
   return (
     <div className="app-shell">
-
       <aside className="sidebar">
-        <div className="brand">
+        <a
+          href="#overview"
+          className="brand"
+          onClick={() => setActiveSection("overview")}
+        >
+          <span className="brand-icon">C</span>
+          <span>
             {appName}
             <span className="brand-dot">.</span>
+          </span>
+        </a>
+
+        <div className="sidebar-workspace">
+          <span className="workspace-indicator" />
+          <span>WORKSPACE</span>
         </div>
 
+        <p className="sidebar-label">MANAGEMENT</p>
 
-        <p className="sidebar-label">WORKFORCE</p>
+        <nav className="sidebar-nav" aria-label="Main navigation">
+          {navigation.map(item => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={() => setActiveSection(item.id)}
+              className={`nav-item ${
+                activeSection === item.id ? "active" : ""
+              }`}
+              aria-current={
+                activeSection === item.id ? "location" : undefined
+              }
+            >
+              <span className="nav-icon" aria-hidden="true">
+                {item.icon}
+              </span>
+              <span>{item.label}</span>
+              {activeSection === item.id && (
+                <span className="nav-indicator" />
+              )}
+            </a>
+          ))}
+        </nav>
 
-        <nav aria-label="Main navigation">
+        <div className="sidebar-bottom">
+          <div className="sidebar-tip">
+            <span className="tip-icon">✦</span>
+            <p>
+              <strong>Stay connected</strong>
+              <span>Build stronger relationships with ContactHub.</span>
+            </p>
+          </div>
 
-              <a
-                  href="#overview"
-                  className="nav-item"
-              >
-                  Overview
-              </a>
-
-              <a
-                  href="#contacts"
-                  className="nav-item"
-              >
-                  Contacts
-              </a>
-
-              <a
-                  href="#relationships"
-                  className="nav-item"
-              >
-                  Create Relationships
-              </a>
-
-              <a
-                  href="#relationship-graph"
-                  className="nav-item"
-              >
-                  Relationship Graph
-              </a>
-
-       </nav>
-
-        <p className="sidebar-footer">
-          Built with Java + React 
-        </p>
+          <div className="sidebar-footer">
+            <span className="footer-status" />
+            Built with Java + React
+          </div>
+        </div>
       </aside>
 
-
-      <main 
-          id="overview"
-          className="main-content">
-
-        <Header
+      <main className="main-content">
+        <div id="overview" className="overview-section">
+          <Header
             title="Your contact workplace"
-            subtitle="Manage contacts and visualize their connections."
-        />
+            subtitle="Manage your contacts and discover meaningful connections."
+          />
 
+          <section className="welcome-card">
+            <div className="welcome-copy">
+              <span className="section-label">
+                YOUR WORKSPACE
+              </span>
 
-        <section className="welcome-card">
-          <span className="section-label">
-            PROJECT OVERVIEW 
-          </span>
+              <h2>
+                Every connection
+                <br />
+                starts with a conversation.
+              </h2>
 
+              <p>
+                Organize your contacts, manage relationships, and
+                explore your network — all in one place.
+              </p>
 
-          <h2>
-            Your backend is ready.
-            Now lets build the inteface.
-          </h2>
+              <a
+                className="welcome-action"
+                href="#contacts"
+                onClick={() => setActiveSection("contacts")}
+              >
+                Explore contacts <span aria-hidden="true">→</span>
+              </a>
+            </div>
 
-          <p>
-            ContactHub will help users manage
-            contacts, search records, and explore Relationships through aninteractive graph.
-          </p>
-        </section>
-
-
-        <section className="feature-grid">
-          <article className="feature-card">
-            <span className="feature-icon">01</span>
-            <h3>Contact Directory</h3>
-            <p>
-              View, search, add, edit and delete contacts.
-            </p>
-
-            <span className="feature-status">
-              Coming next
-            </span>
-
-          </article>
-
-          <article className="feature-card">
-            <span className="feature-icon">02</span>
-            <h3>Relationship Network</h3>
-
-            <p>
-              Visualize how your contacts are connected
-            </p>
-
-            <span className="feature-status">
-              Coming soon
-            </span>
-          </article>
-        </section>
+            <div className="welcome-art" aria-hidden="true">
+              <div className="art-orbit orbit-one" />
+              <div className="art-orbit orbit-two" />
+              <div className="art-node node-one">C</div>
+              <div className="art-node node-two">J</div>
+              <div className="art-node node-three">A</div>
+              <div className="art-node node-four">M</div>
+              <div className="art-center">✦</div>
+            </div>
+          </section>
+        </div>
 
         <ContactDirectory onChange={refreshGraph} />
-        <RelationshipManager 
-            onCreated={refreshGraph}
-        />
-        <RelationshipGraph refreshKey={graphVersion}/>
+
+        <section id="relationships" className="content-section">
+          <RelationshipManager onCreated={refreshGraph} />
+        </section>
+
+       
+          <RelationshipGraph refreshKey={graphVersion} />
+       
+
+        <footer className="app-footer">
+          <span>ContactHub</span>
+          <span>Built to bring people together.</span>
+        </footer>
       </main>
-    </div>    
+    </div>
   );
-  
 }
