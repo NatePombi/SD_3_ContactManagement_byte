@@ -11,9 +11,7 @@ export default function Header({title,subtitle}) {
                 <p>{subtitle}</p>
             </div>
 
-            <span className="status-pill">
-                Frontend Setup 
-            </span>
+            
         </header>
     );
 }

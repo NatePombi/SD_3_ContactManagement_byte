@@ -47,7 +47,7 @@ export default function ContactDirectory({onChange}) {
         // Trigger the existing useEffect to reload contacts
         setReloadCount(previous => previous + 1);
 
-        onChanged?.();
+        onChange?.();
     }
 
         
@@ -159,7 +159,7 @@ export default function ContactDirectory({onChange}) {
             // Reload the actual contacts from Spring Boot
             setReloadCount(previous => previous + 1);
 
-            onChanged?.();
+            onChange?.();
 
         } catch (error) {
 
@@ -211,8 +211,7 @@ export default function ContactDirectory({onChange}) {
 
             }catch(err){
                 if (!controller.signal.aborted){
-                    setError(err.mesaage);
-                }
+                    setError(err.message || "Unable to load contacts. Please try again.");                }
             }
             finally {
 
