@@ -1,5 +1,7 @@
 
 import { useState } from "react";
+import { apiUrl } from "../config/api.js";
+
 
 export default function EditContactForm({
     contact,
@@ -57,8 +59,8 @@ export default function EditContactForm({
                 phoneNumber: form.phoneNumber.trim()
             };
 
-            const response = await fetch(
-                `/api/v1/contacts/update/${contact.id}`,
+            const response = await fetch(apiUrl(
+                `/api/v1/contacts/update/${contact.id}`),
                 {
                     method: "PUT",
 

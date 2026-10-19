@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { mapGraphToFlow } from "../utils/graphMapper.mjs";
+import { apiUrl } from "../config/api.js";
+
 
 import {
     ReactFlow,
@@ -43,8 +45,8 @@ export default function RelationshipGraph({ refreshKey = 0 }) {
 
             try {
 
-                const response = await fetch(
-                    "/api/v1/relationships/graph",
+                const response = await fetch(apiUrl(
+                    "/api/v1/relationships/graph"),
                     {
                         signal: controller.signal
                     }
