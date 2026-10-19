@@ -5,6 +5,7 @@ import com.arithmatrix.sd_contactmanagementsystem_byte.contact.exception.Contact
 import com.arithmatrix.sd_contactmanagementsystem_byte.contact.repository.ContactRepository;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.dto.*;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.entity.ContactRelationship;
+import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.enums.RelationshipType;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.exception.DuplicateRelationshipException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.exception.InvalidRelationshipException;
 import com.arithmatrix.sd_contactmanagementsystem_byte.relationship.repository.RelationshipRepository;
@@ -25,6 +26,7 @@ public class ContactRelationshipService {
     public RelationshipResponse createRelationship(CreateRelationshipRequest request) {
         Long sourceId = request.sourceContactId();
         Long targetId = request.targetContactId();
+        RelationshipType type = RelationshipType.valueOf(request.relationshipType().name());
 
         if(sourceId.equals(targetId)){
             throw new InvalidRelationshipException("A contact cannot have a relationship with itself");
@@ -34,7 +36,7 @@ public class ContactRelationshipService {
 
         Contact targetContact = contactRepository.findById(targetId).orElseThrow(()-> new ContactNotFoundException("Target contact not found with ID: "+targetId));
 
-        boolean alreadyExists = relationshipRepository.existsBySourceContact_IdAndTargetContact_IdAndRelationshipType(sourceId,targetId,request.relationshipType());
+        boolean alreadyExists = relationshipRepository.existsBySourceContact_IdAndTargetContact_IdAndRelationshipType(sourceId,targetId,type);
 
         if(alreadyExists){
             throw new DuplicateRelationshipException("Relationship already exists");
