@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import ContactCard from "./ContactCard";
 import AddContactForm from "./AddContactForm";
 import EditContactForm from "./EditContactForm";
+import { apiUrl } from "../config/api.js";
 
 
 
-export default function ContactDirectory() {
+export default function ContactDirectory({onChange}) {
     //Contacts returned by springboot
     const [contacts,setContacts] = useState([]);
     
@@ -45,6 +46,8 @@ export default function ContactDirectory() {
 
         // Trigger the existing useEffect to reload contacts
         setReloadCount(previous => previous + 1);
+
+        onChanged?.();
     }
 
         
@@ -78,6 +81,8 @@ export default function ContactDirectory() {
 
         // Fetch the latest contacts from Spring Boot
         setReloadCount(previous => previous + 1);
+
+        onChange?.();
     }
 
         
@@ -125,8 +130,8 @@ export default function ContactDirectory() {
 
         try {
 
-            const response = await fetch(
-                `/api/v1/contacts/delete/${deletingContact.id}`,
+            const response = await fetch(apiUrl(
+                `/api/v1/contacts/delete/${deletingContact.id}`),
                 {
                     method: "DELETE"
                 }
@@ -154,6 +159,8 @@ export default function ContactDirectory() {
             // Reload the actual contacts from Spring Boot
             setReloadCount(previous => previous + 1);
 
+            onChanged?.();
+
         } catch (error) {
 
             setDeleteError(
@@ -178,8 +185,8 @@ export default function ContactDirectory() {
 
             try {
 
-                const response = await fetch(
-                    "/api/v1/contacts/fetchAll",
+                const response = await fetch(apiUrl(
+                    "/api/v1/contacts/fetchAll"),
                     {
                         signal: controller.signal
                     }
@@ -235,7 +242,10 @@ export default function ContactDirectory() {
     });
 
     return (
-        <section className="directory-section">
+        <section
+             className="directory-section"
+             id="contacts"
+             >
 
             <div className="directory-header">
                 <div>

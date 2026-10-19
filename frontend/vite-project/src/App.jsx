@@ -28,19 +28,36 @@ export default function App() {
         <p className="sidebar-label">WORKFORCE</p>
 
         <nav aria-label="Main navigation">
-            <div className="nav-item active">
-              Overview
-            </div>
 
-            <div className="nav-item">
-              Contacts - coming soon
-            </div>
+              <a
+                  href="#overview"
+                  className="nav-item"
+              >
+                  Overview
+              </a>
 
+              <a
+                  href="#contacts"
+                  className="nav-item"
+              >
+                  Contacts
+              </a>
 
-            <div className="nav-item">
-              Relationships - coming soon 
-            </div>
-        </nav>
+              <a
+                  href="#relationships"
+                  className="nav-item"
+              >
+                  Create Relationships
+              </a>
+
+              <a
+                  href="#relationship-graph"
+                  className="nav-item"
+              >
+                  Relationship Graph
+              </a>
+
+       </nav>
 
         <p className="sidebar-footer">
           Built with Java + React 
@@ -48,7 +65,9 @@ export default function App() {
       </aside>
 
 
-      <main className="main-content">
+      <main 
+          id="overview"
+          className="main-content">
 
         <Header
             title="Your contact workplace"

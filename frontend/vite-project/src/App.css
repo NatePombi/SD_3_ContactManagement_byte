@@ -63,6 +63,10 @@
 /* Main content */
 
 .main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    box-sizing: border-box;
+
     flex: 1;
     min-width: 0;
     padding: 44px 52px;
@@ -857,6 +861,109 @@
     line-height: 1.6;
 }
 
+/* Navigation improvements */
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar .nav-item {
+    display: block;
+    padding: 14px;
+    border-radius: 10px;
+    color: #bac8dc;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar .nav-item:hover {
+    background: #263e61;
+    color: white;
+}
+
+.sidebar .nav-item:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 2px;
+    color: white;
+}
+
+#overview,
+#contacts,
+#relationships,
+#relationship-graph {
+    scroll-margin-top: 24px;
+}
+
+/* Allow sidebar scrolling for smaller screens */
+
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    box-sizing: border-box;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    background: #14233c;
+    color: white;
+    padding: 32px 20px;
+
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+
+/* Smooth scrolling for sidebar navigation */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Keep section headings from landing too close to the top */
+#overview,
+#contacts,
+#relationships,
+#relationship-graph {
+    scroll-margin-top: 24px;
+}
+
+
+/* Compact navigation on mobile */
+
+@media (max-width: 800px) {
+
+    .sidebar {
+        padding: 20px;
+    }
+
+    .sidebar nav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .sidebar .nav-item {
+        padding: 10px 14px;
+        background: #263e61;
+        font-size: 12px;
+    }
+
+    .sidebar-label {
+        display: none;
+    }
+
+}
+
 @media (max-width: 800px) {
 
     .graph-header {
@@ -906,9 +1013,6 @@
 }
 
 
-
-/* Responsive layout */
-
 @media (max-width: 800px) {
     .app-shell {
         flex-direction: column;
@@ -916,31 +1020,38 @@
 
     .sidebar {
         width: 100%;
-        gap: 12px;
+        box-sizing: border-box;
+        padding: 20px;
+        overflow: visible;
     }
 
     .brand {
-        margin-bottom: 6px;
+        margin-bottom: 12px;
     }
 
+    .sidebar-label,
     .sidebar-footer {
         display: none;
     }
 
+    .sidebar nav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .sidebar .nav-item {
+        display: inline-block;
+        padding: 10px 14px;
+        background: #263e61;
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
     .main-content {
         padding: 28px 20px;
-    }
-
-    .page-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .feature-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .welcome-card {
-        padding: 25px;
     }
 }

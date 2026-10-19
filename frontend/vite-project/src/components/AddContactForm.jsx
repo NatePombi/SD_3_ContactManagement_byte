@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { apiUrl } from "../config/api.js";
 
 const emptyForm = {
     fullName: "",
@@ -54,7 +55,7 @@ export default function AddContactForm({ onCreated, onCancel }) {
                 phoneNumber: form.phoneNumber.trim()
             };
 
-            const response = await fetch("/api/v1/contacts", {
+            const response = await fetch(apiUrl("/api/v1/contacts"), {
                 method: "POST",
 
                 headers: {

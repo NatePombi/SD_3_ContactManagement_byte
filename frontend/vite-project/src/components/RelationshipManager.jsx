@@ -1,5 +1,7 @@
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "../config/api.js";
+
 
 export default function RelationshipManager( {onCreated} ) {
 
@@ -33,8 +35,8 @@ export default function RelationshipManager( {onCreated} ) {
 
             try {
 
-                const response = await fetch(
-                    "/api/v1/contacts/fetchAll",
+                const response = await fetch(apiUrl(
+                    "/api/v1/contacts/fetchAll"),
                     {
                         signal: controller.signal
                     }
@@ -116,8 +118,8 @@ export default function RelationshipManager( {onCreated} ) {
                 relationshipType: relationshipType
             };
 
-            const response = await fetch(
-                "/api/v1/relationships",
+            const response = await fetch(apiUrl(
+                "/api/v1/relationships"),
                 {
                     method: "POST",
 
