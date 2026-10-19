@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Getter
@@ -25,6 +27,7 @@ public class ContactRelationship {
     @ManyToOne(fetch = FetchType.LAZY,optional = false)
     @JoinColumn(name = "target_contact_id", nullable = false)
     private Contact targetContact;
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Enumerated(EnumType.STRING)
     @Column(name = "relationship_type",nullable = false,length = 30)
     private RelationshipType relationshipType;

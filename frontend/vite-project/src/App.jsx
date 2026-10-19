@@ -1,10 +1,19 @@
 import Header from "./components/Header";
 import ContactDirectory from "./components/ContactDirectory";
 import "./App.css";
+import RelationshipManager from "./components/RelationshipManager";
+import {useState } from "react";
+import RelationshipGraph from "./components/RelationshipGraph";
 
 export default function App() {
 
   const appName = "ContactHub";
+
+  const [graphVersion, setGraphVersion] = useState(0);
+
+  function refreshGraph() {
+    setGraphVersion(previous => previous + 1);
+  }
 
   return (
     <div className="app-shell">
@@ -93,7 +102,11 @@ export default function App() {
           </article>
         </section>
 
-        <ContactDirectory/>
+        <ContactDirectory onChange={refreshGraph} />
+        <RelationshipManager 
+            onCreated={refreshGraph}
+        />
+        <RelationshipGraph refreshKey={graphVersion}/>
       </main>
     </div>    
   );
