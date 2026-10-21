@@ -15,7 +15,7 @@ Developed as part of the **ArithMatrix Virtual Internship Program (AVIP) 2026 â€
 
 ## Live Application
 
-- **Live Contact Management System (Deployed):** [Launch ContactHub](https://https://contacthub-frontend-fwqh.onrender.com/) it might take a few minutes to fully launch the backend due to Render
+- **Live Contact Management System (Deployed):** [Launch ContactHub](https://contacthub-frontend-fwqh.onrender.com/) it might take a few minutes to fully launch the backend due to Render
 - **GitHub Repository:** [Source Code](https://github.com/NatePombi/SD_3_ContactManagement_byte)
 
 
